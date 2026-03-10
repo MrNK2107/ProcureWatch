@@ -1,383 +1,319 @@
-# ProcureWatch — Government Tender Intelligence Dashboard
+# ProcureWatch
 
-![ProcureWatch](https://img.shields.io/badge/Civic%20Tech-Procurement%20Transparency-blue)
-![Python](https://img.shields.io/badge/Python-3.9+-green)
-![React](https://img.shields.io/badge/React-18.2-blue)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.109-teal)
+Government Tender Intelligence Dashboard built for civic-tech transparency.
 
-A civic-tech web application that transforms government tender data from the Central Public Procurement Portal into useful procurement intelligence. 
-
-ProcureWatch enables users to browse tenders, track deadlines, search opportunities, and analyze procurement trends across Indian government ministries.
+ProcureWatch collects tender data from India’s Central Public Procurement Portal (CPPP), stores it in SQLite, and exposes it through a FastAPI backend consumed by a React + TypeScript frontend.
 
 ---
 
-## 🎯 Features
+## Table of Contents
 
-### 📊 Dashboard
-- **Real-time statistics**: Total tenders, ministries, categories
-- **Visual analytics**: Charts showing tender distribution by ministry, category, state, and type
-- **Trend analysis**: Timeline view of procurement activity
-
-### 🔍 Tender Explorer
-- **Advanced search**: Search by title or reference number
-- **Powerful filters**: Filter by category and ministry
-- **Pagination**: Browse through large datasets efficiently
-- **Detailed view**: Click any tender for complete information
-
-### ⏰ Closing Soon
-- **Deadline tracking**: See tenders closing within 3, 7, 14, or 30 days
-- **Visual alerts**: Color-coded urgency indicators
-- **Days countdown**: Know exactly how much time remains
-
-### 📈 Analytics
-- Ministry-wise tender distribution
-- Category breakdown (Works, Goods, Services, Consultancy)
-- State-wise procurement activity
-- Tender type analysis
+- [Overview](#overview)
+- [Features](#features)
+- [Architecture](#architecture)
+- [Data Flow](#data-flow)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Quick Start (Local)](#quick-start-local)
+- [Configuration](#configuration)
+- [API Reference](#api-reference)
+- [Deployment on Render](#deployment-on-render)
+- [Troubleshooting](#troubleshooting)
+- [Development Notes](#development-notes)
 
 ---
 
-## 🏗️ Architecture
+## Overview
 
-**Simple 3-tier architecture:**
+ProcureWatch solves a simple but high-impact problem: public procurement data is available, but hard to navigate and analyze quickly.
 
+This project provides:
+- A searchable tender explorer
+- Deadline tracking for “closing soon” tenders
+- Visual analytics (ministry/category/state/type/timeline)
+- A lightweight setup with no heavy infra requirements
+
+---
+
+## Features
+
+### Dashboard
+- Total tenders, ministries, and categories
+- Top ministry insight
+- Charts by ministry, category, state, and tender type
+
+### Tender Explorer
+- Search by title/reference
+- Filter by category and ministry
+- Pagination for large datasets
+- Row-level detail navigation
+
+### Closing Soon
+- Track tenders closing in 3/7/14/30 days
+- Countdown display for urgency
+
+### Resilience
+- If scraping fails, app falls back to sample demo data
+
+---
+
+## Architecture
+
+Three-tier architecture:
+
+```text
+React Frontend (Vite + TS)  <----HTTP/REST---->  FastAPI Backend  <---->  SQLite
 ```
-┌─────────────────┐
-│  React Frontend │  (Vite + TypeScript + TailwindCSS)
-└────────┬────────┘
-         │ HTTP/REST
-┌────────┴────────┐
-│  FastAPI Backend│  (Python + FastAPI)
-└────────┬────────┘
-         │
-┌────────┴────────┐
-│  SQLite Database│  (No installation required)
-└─────────────────┘
-```
 
-**No Docker, Kubernetes, or complex infrastructure** — just simple, hackathon-ready code.
+### Responsibilities
+
+- **Frontend (`frontend/`)**
+  - Routing, UI, charts, and API calls
+  - Uses Axios through `src/api.ts`
+
+- **Backend (`backend/`)**
+  - `main.py`: API endpoints + startup lifecycle
+  - `scraper.py`: scrape + parse + normalize tender data
+  - `database.py`: SQLite CRUD/query functions
+  - `analytics.py`: aggregation queries for dashboard
+
+- **Database (`tenders.db`)**
+  - Local SQLite file generated automatically
+  - Duplicate safety via unique `tender_ref_no`
 
 ---
 
-## 🛠️ Technology Stack
+## Data Flow
+
+### Startup flow
+1. FastAPI starts
+2. Database table is created if missing
+3. Background scraping task starts
+4. Scraped tenders are inserted into SQLite
+5. API endpoints serve frontend requests
+
+### Runtime request flow
+1. React page triggers API call (Axios)
+2. FastAPI endpoint receives request
+3. Endpoint delegates to database/analytics logic
+4. JSON response returned to frontend
+5. UI renders table/cards/charts
+
+---
+
+## Tech Stack
 
 ### Backend
-- **Language**: Python 3.9+
-- **Framework**: FastAPI
-- **Database**: SQLite
-- **Web Scraping**: BeautifulSoup4, Requests
-- **Server**: Uvicorn
+- Python 3.9+
+- FastAPI
+- Uvicorn
+- Requests + BeautifulSoup4
+- SQLite
 
 ### Frontend
-- **Framework**: React 18
-- **Build Tool**: Vite
-- **Language**: TypeScript
-- **Styling**: TailwindCSS
-- **Charts**: Recharts
-- **HTTP Client**: Axios
-- **Routing**: React Router
+- React 18
+- TypeScript
+- Vite
+- TailwindCSS
+- Recharts
+- Axios
+- React Router
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
-```
+```text
 procurewatch/
 ├── backend/
-│   ├── main.py           # FastAPI application & API endpoints
-│   ├── database.py       # SQLite database operations
-│   ├── models.py         # Data models
-│   ├── scraper.py        # Web scraping logic
-│   └── analytics.py      # Analytics & statistics
-│
+│   ├── main.py
+│   ├── database.py
+│   ├── models.py
+│   ├── scraper.py
+│   └── analytics.py
 ├── frontend/
-│   ├── src/
-│   │   ├── components/   # Reusable UI components
-│   │   │   ├── Header.tsx
-│   │   │   ├── Layout.tsx
-│   │   │   ├── StatCard.tsx
-│   │   │   └── TenderTable.tsx
-│   │   ├── pages/        # Page components
-│   │   │   ├── Dashboard.tsx
-│   │   │   ├── TenderExplorer.tsx
-│   │   │   ├── TenderDetail.tsx
-│   │   │   └── ClosingSoon.tsx
-│   │   ├── api.ts        # API client
-│   │   ├── config.ts     # Configuration
-│   │   ├── App.tsx       # Main app component
-│   │   └── main.tsx      # Entry point
-│   ├── public/
+│   ├── package.json
 │   ├── index.html
-│   └── package.json
-│
-├── requirements.txt      # Python dependencies
-└── README.md            # This file
+│   └── src/
+│       ├── api.ts
+│       ├── config.ts
+│       ├── App.tsx
+│       ├── components/
+│       └── pages/
+├── requirements.txt
+├── start.bat
+├── start.sh
+└── README.md
 ```
 
 ---
 
-## 🚀 Quick Start
+## Quick Start (Local)
 
 ### Prerequisites
+- Python 3.9+
+- Node.js 16+
+- npm
 
-- **Python 3.9 or higher**
-- **Node.js 16 or higher**
-- **npm or yarn**
+### Option A: One-command startup (Windows)
 
-### Installation & Running
+From project root:
 
-#### 1️⃣ Backend Setup
+```bat
+start.bat
+```
+
+If using Git Bash:
 
 ```bash
-# Navigate to project root
-cd procurewatch
+./start.bat
+```
 
-# Install Python dependencies
+### Option B: Manual startup
+
+#### Backend
+```bash
 pip install -r requirements.txt
-
-# Run the backend server
 cd backend
 python main.py
 ```
 
-The backend will start at `http://localhost:8000`
-
-**On startup, the backend automatically:**
-- Creates the SQLite database (`tenders.db`)
-- Scrapes tender data from the government portal
-- Loads data into the database
-
-#### 2️⃣ Frontend Setup
-
-Open a **new terminal window**:
-
+#### Frontend (new terminal)
 ```bash
-# Navigate to frontend directory
-cd procurewatch/frontend
-
-# Install dependencies
+cd frontend
 npm install
-
-# Start development server
 npm run dev
 ```
 
-The frontend will start at `http://localhost:5173`
-
-#### 3️⃣ Access the Application
-
-Open your browser and visit: **http://localhost:5173**
+### Access URLs
+- Frontend: `http://localhost:5173`
+- Backend: `http://localhost:8000`
+- Swagger docs: `http://localhost:8000/docs`
 
 ---
 
-## 📡 API Endpoints
+## Configuration
+
+Frontend API URL is set via:
+
+```env
+VITE_API_URL=http://localhost:8000
+```
+
+File locations:
+- `frontend/.env` (local override)
+- Hosting env vars for production
+
+Fallback behavior in `frontend/src/config.ts` defaults to `http://localhost:8000` when not set.
+
+---
+
+## API Reference
 
 ### Tenders
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/tenders` | Get all tenders (with filters) |
-| GET | `/tenders/{id}` | Get tender by ID |
-| GET | `/tenders/closing-soon?days=7` | Get tenders closing soon |
+- `GET /tenders`
+  - Query params: `limit`, `offset`, `category`, `ministry`, `search`
+
+- `GET /tenders/{id}`
+  - Get tender by numeric ID
+
+- `GET /tenders/closing-soon?days=7`
+  - Returns upcoming tenders with `days_until_closing`
 
 ### Analytics
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/analytics` | Get comprehensive analytics |
-| GET | `/analytics/ministry` | Get ministry distribution |
-| GET | `/analytics/category` | Get category distribution |
-| GET | `/analytics/state` | Get state distribution |
+- `GET /analytics`
+  - Combined dashboard payload
 
-### Utilities
+- `GET /analytics/ministry`
+- `GET /analytics/category`
+- `GET /analytics/state`
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/distinct/ministries` | Get list of all ministries |
-| GET | `/distinct/categories` | Get list of all categories |
+### Filter metadata
 
-**API Documentation**: Visit `http://localhost:8000/docs` for interactive Swagger UI
+- `GET /distinct/ministries`
+- `GET /distinct/categories`
 
 ---
 
-## 📊 Data Source
+## Deployment on Render
 
-Tenders are scraped from the official **Central Public Procurement Portal**:
+> Recommended for quick demos: deploy backend as a **Web Service** and frontend as a **Static Site**.
 
-🔗 https://eprocure.gov.in/cppp/latestactivetendersnew/cpppdata
+### 1) Push code to GitHub
 
-### Data Processing
-
-1. **Scraping**: HTTP request to government portal
-2. **Parsing**: Extract table data using BeautifulSoup
-3. **Cleaning**: Parse organization chain, standardize dates
-4. **Storage**: Insert into SQLite database (skip duplicates)
-
-### Sample Data
-
-If scraping fails (network issues, portal changes), the system **automatically generates sample data** for demonstration purposes.
-
-Each tender includes:
-- Tender Reference Number
-- Title
-- Ministry / Department / Sub-Department
-- Category (Works, Goods, Services, Consultancy)
-- Tender Type (Open Tender, Limited Tender)
-- Location
-- Published Date
-- Closing Date
-- Opening Date
-
----
-
-## 🎨 UI Features
-
-### Responsive Design
-- **Desktop-optimized** for data-heavy tables and charts
-- **Mobile-friendly** navigation and layouts
-
-### Visual Components
-- **Stat Cards**: Quick overview metrics
-- **Interactive Charts**: Bar charts, pie charts for analytics
-- **Data Tables**: Sortable, filterable tender listings
-- **Color Coding**: Category badges, urgency indicators
-
-### User Experience
-- **Fast search**: Instant filtering and search
-- **Smart pagination**: Navigate large datasets
-- **Breadcrumb navigation**: Always know where you are
-- **Loading states**: Clear feedback during data fetching
-
----
-
-## 🎭 Demo Story
-
-### The Problem
-
-Government procurement in India involves **thousands of tenders** across numerous ministries and departments. However, this valuable data is presented in raw tabular form, making it:
-
-- **Hard to discover** relevant opportunities
-- **Difficult to track** deadlines and closing dates
-- **Impossible to analyze** procurement trends and patterns
-
-### The Solution
-
-**ProcureWatch** transforms raw procurement data into **actionable intelligence**:
-
-1. **Automated Data Collection**: Continuously scrapes latest tenders
-2. **Smart Organization**: Categorizes by ministry, department, location
-3. **Visual Analytics**: Charts and graphs reveal procurement patterns
-4. **Deadline Tracking**: Never miss a tender closing date
-5. **Easy Discovery**: Search and filter to find relevant opportunities
-
-### Impact
-
-- 📈 **Increased Transparency**: Public visibility into government spending
-- 🎯 **Better Targeting**: Vendors find relevant tenders faster
-- 📊 **Data-Driven Insights**: Understand procurement trends
-- ⏰ **Timely Action**: Track deadlines and act quickly
-
----
-
-## 🔧 Development
-
-### Adding New Features
-
-**Add a new API endpoint:**
-```python
-# backend/main.py
-@app.get("/new-endpoint")
-async def new_endpoint():
-    return {"message": "Hello"}
-```
-
-**Add a new page:**
-```typescript
-// frontend/src/pages/NewPage.tsx
-import Layout from '../components/Layout';
-
-export default function NewPage() {
-  return <Layout><h1>New Page</h1></Layout>;
-}
-```
-
-### Database Schema
-
-```sql
-CREATE TABLE tenders (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    tender_ref_no TEXT UNIQUE,
-    title TEXT,
-    ministry TEXT,
-    department TEXT,
-    sub_department TEXT,
-    category TEXT,
-    tender_type TEXT,
-    location TEXT,
-    published_date TEXT,
-    closing_date TEXT,
-    opening_date TEXT,
-    created_at TEXT
-);
-```
-
----
-
-## 🐛 Troubleshooting
-
-### Backend Issues
-
-**Port 8000 already in use:**
-```python
-# Change port in backend/main.py
-uvicorn.run("main:app", host="0.0.0.0", port=8001, reload=True)
-```
-
-**Database locked:**
 ```bash
-# Delete and restart
-rm tenders.db
-python main.py
+git add .
+git commit -m "Prepare deployment"
+git push origin main
 ```
 
-### Frontend Issues
+### 2) Deploy backend (Render Web Service)
 
-**Port 5173 already in use:**
+Create **Web Service** with:
+
+- **Root Directory**: `backend`
+- **Build Command**: `pip install -r ../requirements.txt`
+- **Start Command**: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+
+Copy backend URL after deploy, e.g.:
+`https://procurewatch-api.onrender.com`
+
+### 3) Deploy frontend (Render Static Site)
+
+Create **Static Site** with:
+
+- **Root Directory**: `frontend`
+- **Build Command**: `npm install && npm run build`
+- **Publish Directory**: `frontend/dist`
+- **Environment Variable**:
+  - `VITE_API_URL=https://procurewatch-api.onrender.com`
+
+### 4) Verify
+
+- Frontend loads and shows data
+- Backend docs available at `/docs`
+- Network calls from frontend target your Render backend URL
+
+### Render caveats (important)
+
+- Free tier services sleep when idle (cold starts)
+- SQLite file is ephemeral in many cloud setups
+  - On restart/redeploy, DB may reset
+  - App re-scrapes on startup, so demo remains functional
+
+---
+
+## Troubleshooting
+
+### `start.bat: command not found` in Git Bash
+Use:
+
 ```bash
-# Vite will automatically suggest next available port
-# Or specify in vite.config.ts
+./start.bat
 ```
 
-**API connection refused:**
-- Ensure backend is running on port 8000
-- Check `.env` file: `VITE_API_URL=http://localhost:8000`
+### `pip` or `npm` not found
+- Install Python/Node and ensure PATH is set
 
-### Scraping Issues
+### Frontend cannot reach backend
+- Ensure backend is running
+- Check `VITE_API_URL` value
+- Open browser devtools network tab for actual request URL
 
-If the government portal changes structure:
-1. Update selectors in `scraper.py`
-2. Or use sample data generator (automatic fallback)
-
----
-
-## 📝 License
-
-This is a hackathon project created for demonstration purposes.
+### Scraper fails
+- CPPP structure/network might have changed
+- App will auto-fallback to sample data for continuity
 
 ---
 
-## 🙏 Acknowledgments
+## Development Notes
 
-- **Data Source**: Central Public Procurement Portal, Government of India
-- **Built for**: Civic Tech & Transparency
-- **Purpose**: Hackathon demonstration of procurement intelligence
-
----
-
-## 📧 Contact
-
-For questions or improvements, create an issue or submit a pull request.
+- CORS is currently wide open (`allow_origins=["*"]`) for hackathon convenience
+- `tenders.db` is ignored in Git (`.gitignore`)
+- To add endpoints, extend `backend/main.py` and call DB/analytics helpers
 
 ---
 
-**🎉 Happy Hacking! Build transparency into public procurement.**
+Built for transparency in public procurement. Contributions welcome.
