@@ -62,17 +62,18 @@ export default function Dashboard() {
 
   return (
     <Layout>
-      <div className="space-y-8">
+      <div className="space-y-8 animate-[fade-in-up_1s_ease-out]">
         {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-500 mt-1">
-            Real-time procurement intelligence from government tenders
+        <div className="relative">
+          <div className="absolute -top-10 -left-10 w-48 h-48 bg-brand-blue rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+          <h1 className="text-4xl font-extrabold text-white relative z-10">Dashboard</h1>
+          <p className="text-slate-400 mt-2 text-lg relative z-10">
+            Real-time <span className="text-brand-blue font-medium">procurement intelligence</span> from government tenders
           </p>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative z-10">
           <StatCard
             title="Total Tenders"
             value={analytics.dashboard.total_tenders}
@@ -86,7 +87,7 @@ export default function Dashboard() {
           <StatCard
             title="Ministries"
             value={analytics.dashboard.total_ministries}
-            color="green"
+            color="emerald"
             icon={
               <svg className="w-6 h-6" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
                 <path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -116,92 +117,119 @@ export default function Dashboard() {
         </div>
 
         {/* Charts Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 relative z-10">
           {/* Ministry Chart */}
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="glass-card flex flex-col items-center">
+            <h2 className="text-xl font-bold text-white mb-6 w-full text-left">
               Top Ministries by Tender Count
             </h2>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={analytics.ministry.slice(0, 8)}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="ministry" 
+            <ResponsiveContainer width="100%" height={320}>
+              <BarChart data={analytics.ministry.slice(0, 8)} margin={{ top: 10, right: 10, left: -20, bottom: 40 }}>
+                <defs>
+                  <linearGradient id="colorMin" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.2} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                <XAxis
+                  dataKey="ministry"
                   angle={-45}
                   textAnchor="end"
-                  height={100}
+                  height={80}
                   interval={0}
-                  tick={{ fontSize: 10 }}
+                  tick={{ fill: '#94a3b8', fontSize: 11 }}
+                  axisLine={false}
+                  tickLine={false}
                 />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="count" fill="#3b82f6" />
+                <YAxis tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <Tooltip
+                  cursor={{ fill: '#1e293b', opacity: 0.4 }}
+                  contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', borderColor: '#334155', borderRadius: '8px', color: '#f1f5f9' }}
+                  itemStyle={{ color: '#3b82f6' }}
+                />
+                <Bar dataKey="count" fill="url(#colorMin)" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
 
           {/* Category Chart */}
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="glass-card flex flex-col items-center">
+            <h2 className="text-xl font-bold text-white mb-6 w-full text-left">
               Tenders by Category
             </h2>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={320}>
               <PieChart>
                 <Pie
                   data={analytics.category}
                   cx="50%"
                   cy="50%"
-                  labelLine={false}
-                  label={({ category, percent }) => `${category}: ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
+                  innerRadius={60}
+                  outerRadius={100}
+                  paddingAngle={5}
                   dataKey="count"
                   nameKey="category"
+                  stroke="none"
                 >
                   {analytics.category.map((_, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip
+                  contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', borderColor: '#334155', borderRadius: '8px', color: '#f1f5f9' }}
+                />
+                <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ color: '#94a3b8', fontSize: '12px' }} />
               </PieChart>
             </ResponsiveContainer>
           </div>
 
           {/* State Distribution */}
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="glass-card flex flex-col items-center">
+            <h2 className="text-xl font-bold text-white mb-6 w-full text-left">
               Top States by Tender Count
             </h2>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={analytics.state.slice(0, 10)}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="state" 
+            <ResponsiveContainer width="100%" height={320}>
+              <BarChart data={analytics.state.slice(0, 10)} margin={{ top: 10, right: 10, left: -20, bottom: 40 }}>
+                <defs>
+                  <linearGradient id="colorState" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0.2} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                <XAxis
+                  dataKey="state"
                   angle={-45}
                   textAnchor="end"
                   height={80}
-                  tick={{ fontSize: 10 }}
+                  tick={{ fill: '#94a3b8', fontSize: 11 }}
+                  axisLine={false}
+                  tickLine={false}
                 />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="count" fill="#10b981" />
+                <YAxis tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <Tooltip
+                  cursor={{ fill: '#1e293b', opacity: 0.4 }}
+                  contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', borderColor: '#334155', borderRadius: '8px', color: '#f1f5f9' }}
+                  itemStyle={{ color: '#10b981' }}
+                />
+                <Bar dataKey="count" fill="url(#colorState)" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
 
           {/* Tender Type */}
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="glass-card flex flex-col items-start col-span-1 lg:col-span-1">
+            <h2 className="text-xl font-bold text-white mb-6 w-full text-left">
               Tender Types
             </h2>
-            <div className="space-y-3">
+            <div className="space-y-4 w-full">
               {analytics.tender_type.map((item, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className={`w-4 h-4 rounded-full`} style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
-                    <span className="text-sm text-gray-700">{item.type}</span>
+                <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                  <div className="flex items-center space-x-4">
+                    <div className={`w-3 h-3 rounded-full flex-shrink-0`} style={{ backgroundColor: COLORS[index % COLORS.length], boxShadow: `0 0 10px ${COLORS[index % COLORS.length]}` }}></div>
+                    <span className="text-sm font-medium text-slate-300">{item.type}</span>
                   </div>
-                  <span className="text-sm font-semibold text-gray-900">{item.count}</span>
+                  <span className="text-base font-bold text-white">{item.count}</span>
                 </div>
               ))}
             </div>

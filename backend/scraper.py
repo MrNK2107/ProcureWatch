@@ -136,6 +136,11 @@ def scrape_tenders() -> List[Tender]:
                 tender_type = "Open Tender" # Defaulting for now
                 location = "India" # Default since it's not provided in the 7-col format
                 
+                # Create an artificial description since CAPTCHA solving is skipped
+                mock_desc = f"Detailed technical and functional work description required for the completion of the project '{title}'. " \
+                            f"Includes resource allocation, project milestones, quality assurance standards under {org_data['ministry']}, " \
+                            f"and adherence to compliance requirements in {location}."
+                
                 tender = Tender(
                     tender_ref_no=tender_ref_no,
                     title=title,
@@ -145,6 +150,7 @@ def scrape_tenders() -> List[Tender]:
                     category=category,
                     tender_type=tender_type,
                     location=location,
+                    work_description=mock_desc,
                     published_date=parse_date(published_date),
                     closing_date=parse_date(closing_date),
                     opening_date=parse_date(opening_date)
@@ -310,6 +316,7 @@ def generate_sample_tenders() -> List[Tender]:
     
     tenders = []
     for data in sample_data:
+        data['work_description'] = f"Mock detailed work description for {data['title']} including artificial technical specifications and delivery requirements based on category {data['category']} under {data['ministry']}."
         tender = Tender(**data)
         tenders.append(tender)
     

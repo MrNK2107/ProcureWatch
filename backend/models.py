@@ -15,6 +15,7 @@ class Tender:
         category: str = "",
         tender_type: str = "",
         location: str = "",
+        work_description: str = "",
         published_date: str = "",
         closing_date: str = "",
         opening_date: str = "",
@@ -29,6 +30,7 @@ class Tender:
         self.category = category
         self.tender_type = tender_type
         self.location = location
+        self.work_description = work_description
         self.published_date = published_date
         self.closing_date = closing_date
         self.opening_date = opening_date
@@ -49,5 +51,6 @@ class Tender:
             "published_date": self.published_date,
             "closing_date": self.closing_date,
             "opening_date": self.opening_date,
+            "work_description": self.work_description,
             "created_at": self.created_at
         }
