@@ -68,19 +68,30 @@ async def background_scrape():
     total = get_tender_count()
     print(f"Total tenders in database: {total}")
 
-@app.get("/")
-async def root():
-    """Root endpoint"""
+def _service_status_payload():
+    """Lightweight status payload for keep-alive and health checks."""
     return {
-        "message": "Welcome to ProcureWatch API",
+        "status": "ok",
+        "message": "ProcureWatch API is running",
         "version": "1.0.0",
         "endpoints": {
+            "health": "/health",
             "tenders": "/tenders",
             "tender_detail": "/tenders/{id}",
             "closing_soon": "/tenders/closing-soon",
             "analytics": "/analytics"
         }
     }
+
+@app.api_route("/", methods=["GET", "POST", "HEAD"])
+async def root():
+    """Keep-alive endpoint for Render/UptimeRobot."""
+    return _service_status_payload()
+
+@app.api_route("/health", methods=["GET", "POST", "HEAD"])
+async def health_check():
+    """Dedicated health endpoint for uptime monitoring."""
+    return _service_status_payload()
 
 @app.get("/tenders")
 async def get_tenders(
